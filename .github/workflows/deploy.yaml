@@ -50,18 +50,18 @@ jobs:
       - name: Check if Artifact Registry exists and create if not
         run: |
           REGISTRY_NAME="${{ github.event.repository.name }}-registry"
-          echo "Checking Artifact Registry: $REGISTRY_NAME"
+          echo "Checking Artifact Registry repository: $REGISTRY_NAME"
           REGISTRY_URI="${{ env.REGISTRY }}/${{ env.GOOGLE_PROJECT_ID }}/${REGISTRY_NAME}"
           
           # Check if the Artifact Registry repository exists
           if ! gcloud artifacts repositories describe $REGISTRY_NAME --location ${{ env.REGION }} --project ${{ env.GOOGLE_PROJECT_ID }}; then
-            echo "Artifact Registry not found, creating it..."
+            echo "Artifact Registry repository not found, creating it..."
             gcloud artifacts repositories create $REGISTRY_NAME \
               --location ${{ env.REGION }} \
               --repository-format=docker \
               --project ${{ env.GOOGLE_PROJECT_ID }}
           else
-            echo "Artifact Registry already exists."
+            echo "Artifact Registry repository already exists."
           fi
 
       - name: Configure Docker to use Google Artifact Registry
@@ -69,7 +69,9 @@ jobs:
 
       - name: Build and Push Docker Image
         run: |
+          echo "Building Docker image..."
           docker build -t ${{ env.IMAGE_URI }} .
+          echo "Pushing Docker image to ${{ env.IMAGE_URI }}..."
           docker push ${{ env.IMAGE_URI }}
 
       - name: Deploy to Cloud Run
