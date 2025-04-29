@@ -1,32 +1,29 @@
-# Use official Python image
+# Use official Python image as the base
 FROM python:3.11-slim
 
-# Install system libraries needed for FaceFusion and OpenCV
+# Set environment variables to optimize Python performance and compatibility
+ENV PYTHONUNBUFFERED=1
+ENV OMP_NUM_THREADS=1
+
+# Install system dependencies necessary for facefusion and gradio
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libgl1 \
     libglib2.0-0 \
     curl \
     ffmpeg \
-    socat \
     && rm -rf /var/lib/apt/lists/*
 
-# Set working directory
+# Set working directory in the container
 WORKDIR /app
 
-# Copy project files into the container
-COPY . .
+# Copy the project files into the container
+COPY . /app/
 
-# Optional: Set Pythonpath to /app to fix imports
-ENV PYTHONPATH=/app
-
-# Install required ONNX and other dependencies through install.py
-RUN python install.py --skip-conda --onnxruntime default
-
-# Install additional Python dependencies
+# Install project dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Expose port 8080 for Cloud Run
+# Expose port 8080, which is required for Cloud Run
 EXPOSE 8080
 
-# Start FaceFusion and forward Cloud Run's port 8080 to localhost:7860
-CMD bash -c "python facefusion.py run & socat TCP-LISTEN:8080,fork TCP:localhost:7860"
+# Run the facefusion script (instantly start the gradio UI and bind to port)
+CMD ["python", "instant_runner.py"]
