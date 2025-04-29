@@ -22,11 +22,11 @@ WORKDIR /app
 COPY install.py .
 COPY requirements.txt .
 
-# Run installation
-RUN python install.py --skip-conda --onnxruntime default
-
 # Run requirements
 RUN pip install --no-cache-dir -r requirements.txt
+
+# Run installation
+RUN python install.py --skip-conda --onnxruntime default
 
 # Copy the rest of the application
 COPY . .
