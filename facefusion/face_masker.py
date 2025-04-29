@@ -134,7 +134,9 @@ def collect_model_downloads() -> Tuple[DownloadSet, DownloadSet]:
 
 
 def pre_check() -> bool:
-	return True
+	model_hashes, model_sources = collect_model_downloads()
+
+	return conditional_download_hashes(model_hashes) and conditional_download_sources(model_sources)
 
 
 @lru_cache(maxsize = None)

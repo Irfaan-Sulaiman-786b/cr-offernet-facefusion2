@@ -1,11 +1,13 @@
-# Use official Python image as the base
 FROM python:3.11-slim
 
-# Set environment variables to optimize Python performance and compatibility
+# Set environment variables
 ENV PYTHONUNBUFFERED=1
 ENV OMP_NUM_THREADS=1
+ENV GRADIO_SERVER_PORT=8080
+ENV GRADIO_SERVER_NAME=0.0.0.0
+ENV PORT=8080
 
-# Install system dependencies necessary for facefusion and gradio
+# Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libgl1 \
     libglib2.0-0 \
@@ -13,17 +15,21 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ffmpeg \
     && rm -rf /var/lib/apt/lists/*
 
-# Set working directory in the container
+# Set up application
 WORKDIR /app
 
-# Copy the project files into the container
-COPY . /app/
+# Copy only the necessary files for installation first
+COPY install.py .
+COPY requirements.txt .
 
-# Install project dependencies
+# Run installation
+RUN python install.py --skip-conda --onnxruntime default
+
+# Run requirements
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Expose port 8080, which is required for Cloud Run
-EXPOSE 8080
+# Copy the rest of the application
+COPY . .
 
-# Run the facefusion script (instantly start the gradio UI and bind to port)
-CMD ["python", "instant_runner.py"]
+# Run application
+CMD ["python", "facefusion.py", "run"]
