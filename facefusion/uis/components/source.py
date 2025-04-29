@@ -1,5 +1,5 @@
 from typing import List, Optional, Tuple
-import gradio as gr
+import gradio
 import cv2
 import tempfile
 from facefusion import state_manager, wording
@@ -8,11 +8,11 @@ from facefusion.filesystem import filter_audio_paths, filter_image_paths, has_au
 from facefusion.uis.core import register_ui_component
 from facefusion.uis.typing import File
 
-SOURCE_FILE: Optional[gr.File] = None
-SOURCE_CAMERA_BUTTON: Optional[gr.Button] = None
-SOURCE_WEBCAM: Optional[gr.HTML] = None
-SOURCE_AUDIO: Optional[gr.Audio] = None
-SOURCE_IMAGE: Optional[gr.Image] = None
+SOURCE_FILE: Optional[gradio.File] = None
+SOURCE_CAMERA_BUTTON: Optional[gradio.Button] = None
+SOURCE_WEBCAM: Optional[gradio.Image] = None
+SOURCE_AUDIO: Optional[gradio.Audio] = None
+SOURCE_IMAGE: Optional[gradio.Image] = None
 webcam_active = False
 cap = None
 
@@ -23,67 +23,39 @@ def render() -> None:
     has_source_audio = has_audio(stored_source_paths)
     has_source_image = has_image(stored_source_paths)
 
-    SOURCE_FILE = gr.File(
+    # File upload component
+    SOURCE_FILE = gradio.File(
         label=wording.get('uis.source_file_label') or "Upload Source Image(s)/Audio",
         file_count='multiple',
         file_types=['audio', 'image'],
         value=stored_source_paths if stored_source_paths else None
     )
 
-    with gr.Row():
-        SOURCE_CAMERA_BUTTON = gr.Button(
+    # Webcam components
+    with gradio.Row():
+        SOURCE_CAMERA_BUTTON = gradio.Button(
             value=wording.get('uis.take_picture_button') or "TAKE PICTURE",
             variant='primary',
-            size='sm'
+			size = 'sm'
+        )
+        SOURCE_WEBCAM = gradio.Image(
+            label=wording.get('uis.webcam_preview_label') or "Webcam Preview",
+            visible=False,
+            interactive=False
         )
 
-        SOURCE_WEBCAM = gr.HTML(
-            value="""
-            <div>
-                <video id="webcam" width="100%" height="auto" autoplay></video>
-                <button id="capture" style="margin-top: 10px;">Capture</button>
-                <canvas id="canvas" style="display: none;"></canvas>
-            </div>
-            <script>
-                const video = document.getElementById('webcam');
-                const captureButton = document.getElementById('capture');
-                const canvas = document.getElementById('canvas');
-                const context = canvas.getContext('2d');
-
-                async function startWebcam() {
-                    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-                    video.srcObject = stream;
-                }
-
-                captureButton.addEventListener('click', () => {
-                    context.drawImage(video, 0, 0, canvas.width, canvas.height);
-                    const imageDataUrl = canvas.toDataURL('image/jpeg');
-                    const event = new CustomEvent("webcam-image-captured", { detail: imageDataUrl });
-                    window.dispatchEvent(event);
-                });
-
-                video.onloadedmetadata = () => {
-                    canvas.width = video.videoWidth;
-                    canvas.height = video.videoHeight;
-                };
-
-                startWebcam();
-            </script>
-            """,
-            visible=True
-        )
-
+    # Preview components
     source_audio_path = get_first(filter_audio_paths(stored_source_paths))
     source_image_path = get_first(filter_image_paths(stored_source_paths))
 
-    SOURCE_AUDIO = gr.Audio(
+    SOURCE_AUDIO = gradio.Audio(
         label=wording.get('uis.source_audio_preview_label') or "Source Audio Preview",
         value=source_audio_path if has_source_audio else None,
         visible=has_source_audio,
         show_label=False
     )
 
-    SOURCE_IMAGE = gr.Image(
+    SOURCE_IMAGE = gradio.Image(
         label=wording.get('uis.source_image_preview_label') or "Source Image Preview",
         value=source_image_path if has_source_image else None,
         visible=has_source_image,
@@ -109,52 +81,56 @@ def listen() -> None:
     else:
         print("Warning: Source components not fully initialized before listen() call.")
 
-def toggle_webcam() -> Tuple[gr.HTML, gr.Button]:
+def toggle_webcam() -> Tuple[gradio.Image, gradio.Button]:
     global webcam_active, cap
-
+    
     if not webcam_active:
         cap = cv2.VideoCapture(0)
         if not cap.isOpened():
-            return gr.HTML(visible=False), gr.Button(value="Webcam Error")
-
+            return gradio.Image(visible=False), gradio.Button(value="Webcam Error")
+        
         webcam_active = True
-        return gr.HTML(visible=True), gr.Button(value="Take Picture Now")
+        return gradio.Image(visible=True), gradio.Button(value="Take Picture Now")
     else:
         if cap is not None:
             cap.release()
         webcam_active = False
-        return gr.HTML(visible=False), gr.Button(value="Take Picture")
+        return gradio.Image(visible=False), gradio.Button(value="Take Picture")
 
-def capture_image() -> Tuple[gr.Image, gr.HTML, gr.Button]:
+def capture_image() -> Tuple[gradio.Image, gradio.Image, gradio.Button]:
     global webcam_active, cap
-
+    
     if not webcam_active or cap is None or not cap.isOpened():
-        return gr.Image(visible=False), gr.HTML(visible=False), gr.Button(value="Take Picture")
-
+        return gradio.Image(visible=False), gradio.Image(visible=False), gradio.Button(value="Take Picture")
+    
     ret, frame = cap.read()
     if not ret:
-        return gr.Image(visible=False), gr.HTML(visible=False), gr.Button(value="Capture Failed")
-
+        return gradio.Image(visible=False), gradio.Image(visible=False), gradio.Button(value="Capture Failed")
+    
+    # Save captured image to temporary file
     with tempfile.NamedTemporaryFile(suffix='.jpg', delete=False) as temp_file:
         temp_path = temp_file.name
         cv2.imwrite(temp_path, frame)
-
+    
+    # Update state
     state_manager.set_item('source_paths', [temp_path])
+    
+    # Turn off webcam
     cap.release()
     webcam_active = False
-
+    
     return (
-        gr.Image(value=temp_path, visible=True),
-        gr.HTML(visible=False),
-        gr.Button(value="Take Picture")
+        gradio.Image(value=temp_path, visible=True),
+        gradio.Image(visible=False),
+        gradio.Button(value="Take Picture")
     )
 
-def update(files: Optional[List[File]]) -> Tuple[gr.Audio, gr.Image]:
+def update(files: Optional[List[File]]) -> Tuple[gradio.Audio, gradio.Image]:
     if files:
         file_names = [file.name for file in files if hasattr(file, 'name') and file.name]
         if not file_names:
-            state_manager.clear_item('source_paths')
-            return gr.Audio(value=None, visible=False), gr.Image(value=None, visible=False)
+             state_manager.clear_item('source_paths')
+             return gradio.Audio(value=None, visible=False), gradio.Image(value=None, visible=False)
 
         has_current_audio = has_audio(file_names)
         has_current_image = has_image(file_names)
@@ -163,7 +139,7 @@ def update(files: Optional[List[File]]) -> Tuple[gr.Audio, gr.Image]:
             source_audio_path = get_first(filter_audio_paths(file_names))
             source_image_path = get_first(filter_image_paths(file_names))
             state_manager.set_item('source_paths', file_names)
-            return gr.Audio(value=source_audio_path, visible=has_current_audio), gr.Image(value=source_image_path, visible=has_current_image)
+            return gradio.Audio(value=source_audio_path, visible=has_current_audio), gradio.Image(value=source_image_path, visible=has_current_image)
 
     state_manager.clear_item('source_paths')
-    return gr.Audio(value=None, visible=False), gr.Image(value=None, visible=False)
+    return gradio.Audio(value=None, visible=False), gradio.Image(value=None, visible=False)
