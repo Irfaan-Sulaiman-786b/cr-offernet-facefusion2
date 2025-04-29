@@ -38,13 +38,11 @@ jobs:
       - name: Determine Deployment Settings
         run: |
           BRANCH="${{ github.event.inputs.environment || github.ref_name }}"
-
           if [ "$BRANCH" == "main" ]; then
             SUFFIX=live
           else
             SUFFIX=dev
           fi
-
           echo "SUFFIX=$SUFFIX" >> $GITHUB_ENV
           echo "SERVICE_NAME=${{ github.event.repository.name }}-$SUFFIX" >> $GITHUB_ENV
           echo "IMAGE_URI=${{ env.REGISTRY }}/${{ env.GOOGLE_PROJECT_ID }}/${{ github.event.repository.name }}-$SUFFIX/${{ github.event.repository.name }}-image" >> $GITHUB_ENV
@@ -52,14 +50,18 @@ jobs:
       - name: Check if Artifact Registry exists and create if not
         run: |
           REGISTRY_NAME="${{ github.event.repository.name }}-registry"
+          echo "Checking Artifact Registry: $REGISTRY_NAME"
           REGISTRY_URI="${{ env.REGISTRY }}/${{ env.GOOGLE_PROJECT_ID }}/${REGISTRY_NAME}"
           
-          # Check if the registry exists
+          # Check if the Artifact Registry repository exists
           if ! gcloud artifacts repositories describe $REGISTRY_NAME --location ${{ env.REGION }} --project ${{ env.GOOGLE_PROJECT_ID }}; then
-            echo "Registry not found, creating it..."
-            gcloud artifacts repositories create $REGISTRY_NAME --location ${{ env.REGION }} --repository-format=docker --project ${{ env.GOOGLE_PROJECT_ID }}
+            echo "Artifact Registry not found, creating it..."
+            gcloud artifacts repositories create $REGISTRY_NAME \
+              --location ${{ env.REGION }} \
+              --repository-format=docker \
+              --project ${{ env.GOOGLE_PROJECT_ID }}
           else
-            echo "Registry already exists."
+            echo "Artifact Registry already exists."
           fi
 
       - name: Configure Docker to use Google Artifact Registry
