@@ -98,7 +98,7 @@ def launch() -> None:
 
 def get_theme() -> gradio.Theme:
 	return gradio.themes.Base(
-		primary_hue = gradio.themes.colors.red,
+		primary_hue = gradio.themes.colors.blue,
 		secondary_hue = gradio.themes.Color(
 			name = 'neutral',
 			c50 = '#fafafa',

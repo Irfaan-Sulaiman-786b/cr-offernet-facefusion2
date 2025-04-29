@@ -13,21 +13,32 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libglib2.0-0 \
     curl \
     ffmpeg \
+    # Webcam dependencies
+    libnss3 \
+    libxcomposite1 \
+    libxcursor1 \
+    libxdamage1 \
+    libxi6 \
+    libxtst6 \
+    libxss1 \
+    libasound2 \
+    libatk-bridge2.0-0 \
+    libgbm1 \
     && rm -rf /var/lib/apt/lists/*
 
 # Set up application
 WORKDIR /app
 
-# First copy only requirements and install them
+# Copy requirements first for caching
 COPY requirements.txt .
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
-# Then copy the rest of the application files
+# Copy the rest of the application
 COPY . .
 
-# Now run the installation script
-RUN python install.py --skip-conda --onnxruntime default
+# Run installation if needed
+RUN if [ -f install.py ]; then python install.py --skip-conda --onnxruntime default; fi
 
 # Run application
-CMD ["python", "facefusion.py", "run"]
+CMD ["python", "your_main_file.py"]

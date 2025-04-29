@@ -35,7 +35,8 @@ def render() -> None:
     with gradio.Row():
         SOURCE_CAMERA_BUTTON = gradio.Button(
             value=wording.get('uis.take_picture_button') or "TAKE PICTURE",
-            variant='primary'
+            variant='primary',
+			size = 'sm'
         )
         SOURCE_WEBCAM = gradio.Image(
             label=wording.get('uis.webcam_preview_label') or "Webcam Preview",
