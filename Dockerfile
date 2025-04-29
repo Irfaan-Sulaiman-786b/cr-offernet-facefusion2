@@ -41,4 +41,4 @@ COPY . .
 RUN if [ -f install.py ]; then python install.py --skip-conda --onnxruntime default; fi
 
 # Run application
-CMD ["python", "facefusion.py"]
+CMD ["python", "facefusion.py", "run"]
