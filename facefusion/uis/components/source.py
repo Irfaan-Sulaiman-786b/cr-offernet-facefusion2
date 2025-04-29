@@ -10,7 +10,7 @@ from facefusion.uis.typing import File
 
 SOURCE_FILE: Optional[gr.File] = None
 SOURCE_CAMERA_BUTTON: Optional[gr.Button] = None
-SOURCE_WEBCAM: Optional[gr.HTML] = None  # Changed to HTML for webcam integration
+SOURCE_WEBCAM: Optional[gr.HTML] = None
 SOURCE_AUDIO: Optional[gr.Audio] = None
 SOURCE_IMAGE: Optional[gr.Image] = None
 webcam_active = False
@@ -23,7 +23,6 @@ def render() -> None:
     has_source_audio = has_audio(stored_source_paths)
     has_source_image = has_image(stored_source_paths)
 
-    # File upload component
     SOURCE_FILE = gr.File(
         label=wording.get('uis.source_file_label') or "Upload Source Image(s)/Audio",
         file_count='multiple',
@@ -31,13 +30,13 @@ def render() -> None:
         value=stored_source_paths if stored_source_paths else None
     )
 
-    # Webcam components (HTML for JavaScript to handle webcam access)
     with gr.Row():
         SOURCE_CAMERA_BUTTON = gr.Button(
             value=wording.get('uis.take_picture_button') or "TAKE PICTURE",
             variant='primary',
             size='sm'
         )
+
         SOURCE_WEBCAM = gr.HTML(
             value="""
             <div>
@@ -46,46 +45,34 @@ def render() -> None:
                 <canvas id="canvas" style="display: none;"></canvas>
             </div>
             <script>
-                // Access the webcam and display it on the video element
                 const video = document.getElementById('webcam');
                 const captureButton = document.getElementById('capture');
                 const canvas = document.getElementById('canvas');
                 const context = canvas.getContext('2d');
-                
-                // Initialize the webcam
+
                 async function startWebcam() {
                     const stream = await navigator.mediaDevices.getUserMedia({ video: true });
                     video.srcObject = stream;
                 }
 
-                // Capture image from webcam when button is clicked
                 captureButton.addEventListener('click', () => {
-                    // Draw the current video frame onto the canvas
                     context.drawImage(video, 0, 0, canvas.width, canvas.height);
-                    
-                    // Convert the canvas to an image and pass it to Gradio
                     const imageDataUrl = canvas.toDataURL('image/jpeg');
-                    const gradioImage = new Image();
-                    gradioImage.src = imageDataUrl;
-
-                    // Update Gradio image component with the captured image
-                    gradioApp().inputs[0].update({ value: gradioImage.src });
+                    const event = new CustomEvent("webcam-image-captured", { detail: imageDataUrl });
+                    window.dispatchEvent(event);
                 });
 
-                // Set the canvas dimensions to match the video feed
                 video.onloadedmetadata = () => {
                     canvas.width = video.videoWidth;
                     canvas.height = video.videoHeight;
                 };
 
-                // Start the webcam when the page loads
                 startWebcam();
             </script>
             """,
-            visible=False  # Hide initially until button is clicked
+            visible=True
         )
 
-    # Preview components
     source_audio_path = get_first(filter_audio_paths(stored_source_paths))
     source_image_path = get_first(filter_image_paths(stored_source_paths))
 
@@ -122,47 +109,43 @@ def listen() -> None:
     else:
         print("Warning: Source components not fully initialized before listen() call.")
 
-def toggle_webcam() -> Tuple[gr.Image, gr.Button]:
+def toggle_webcam() -> Tuple[gr.HTML, gr.Button]:
     global webcam_active, cap
-    
+
     if not webcam_active:
         cap = cv2.VideoCapture(0)
         if not cap.isOpened():
-            return gr.Image(visible=False), gr.Button(value="Webcam Error")
-        
+            return gr.HTML(visible=False), gr.Button(value="Webcam Error")
+
         webcam_active = True
-        return gr.Image(visible=True), gr.Button(value="Take Picture Now")
+        return gr.HTML(visible=True), gr.Button(value="Take Picture Now")
     else:
         if cap is not None:
             cap.release()
         webcam_active = False
-        return gr.Image(visible=False), gr.Button(value="Take Picture")
+        return gr.HTML(visible=False), gr.Button(value="Take Picture")
 
-def capture_image() -> Tuple[gr.Image, gr.Image, gr.Button]:
+def capture_image() -> Tuple[gr.Image, gr.HTML, gr.Button]:
     global webcam_active, cap
-    
+
     if not webcam_active or cap is None or not cap.isOpened():
-        return gr.Image(visible=False), gr.Image(visible=False), gr.Button(value="Take Picture")
-    
+        return gr.Image(visible=False), gr.HTML(visible=False), gr.Button(value="Take Picture")
+
     ret, frame = cap.read()
     if not ret:
-        return gr.Image(visible=False), gr.Image(visible=False), gr.Button(value="Capture Failed")
-    
-    # Save captured image to temporary file
+        return gr.Image(visible=False), gr.HTML(visible=False), gr.Button(value="Capture Failed")
+
     with tempfile.NamedTemporaryFile(suffix='.jpg', delete=False) as temp_file:
         temp_path = temp_file.name
         cv2.imwrite(temp_path, frame)
-    
-    # Update state
+
     state_manager.set_item('source_paths', [temp_path])
-    
-    # Turn off webcam
     cap.release()
     webcam_active = False
-    
+
     return (
         gr.Image(value=temp_path, visible=True),
-        gr.Image(visible=False),
+        gr.HTML(visible=False),
         gr.Button(value="Take Picture")
     )
 
@@ -170,8 +153,8 @@ def update(files: Optional[List[File]]) -> Tuple[gr.Audio, gr.Image]:
     if files:
         file_names = [file.name for file in files if hasattr(file, 'name') and file.name]
         if not file_names:
-             state_manager.clear_item('source_paths')
-             return gr.Audio(value=None, visible=False), gr.Image(value=None, visible=False)
+            state_manager.clear_item('source_paths')
+            return gr.Audio(value=None, visible=False), gr.Image(value=None, visible=False)
 
         has_current_audio = has_audio(file_names)
         has_current_image = has_image(file_names)

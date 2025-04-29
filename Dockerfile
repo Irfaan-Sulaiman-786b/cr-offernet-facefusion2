@@ -1,19 +1,17 @@
 FROM python:3.11-slim
 
 # Set environment variables
-ENV PYTHONUNBUFFERED=1
-ENV OMP_NUM_THREADS=1
-ENV GRADIO_SERVER_PORT=8080
-ENV GRADIO_SERVER_NAME=0.0.0.0
-ENV PORT=8080
+ENV PYTHONUNBUFFERED=1 \
+    OMP_NUM_THREADS=1 \
+    GRADIO_SERVER_PORT=8080 \
+    GRADIO_SERVER_NAME=0.0.0.0 \
+    PORT=8080
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libgl1 \
     libglib2.0-0 \
-    curl \
     ffmpeg \
-    # Webcam dependencies for browser interaction (especially for Chromium-based apps or VDOM)
     libnss3 \
     libxcomposite1 \
     libxcursor1 \
@@ -26,24 +24,25 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libgbm1 \
     libxrandr2 \
     x11-utils \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Set up application directory
+# Set working directory
 WORKDIR /app
 
-# Copy requirements and install
+# Copy and install dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
-# Copy source code
+# Copy application code
 COPY . .
 
-# Optional install script (facefusion-specific)
+# Optional facefusion install
 RUN if [ -f install.py ]; then python install.py --skip-conda --onnxruntime default; fi
 
-# Expose Gradio's port
+# Expose port for Gradio
 EXPOSE 8080
 
-# Run the application
+# Run app
 CMD ["python", "facefusion.py", "run"]
