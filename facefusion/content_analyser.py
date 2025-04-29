@@ -58,10 +58,7 @@ def get_model_options() -> ModelOptions:
 
 
 def pre_check() -> bool:
-	model_hashes = get_model_options().get('hashes')
-	model_sources = get_model_options().get('sources')
-
-	return conditional_download_hashes(model_hashes) and conditional_download_sources(model_sources)
+	return True
 
 
 def analyse_stream(vision_frame : VisionFrame, video_fps : Fps) -> bool:

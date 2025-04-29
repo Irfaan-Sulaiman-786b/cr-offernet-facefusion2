@@ -66,7 +66,9 @@ download_provider_set : DownloadProviderSet =\
 		'path': '/facefusion/{base_name}/resolve/main/{file_name}'
 	}
 }
-download_providers : List[DownloadProvider] = list(download_provider_set.keys())
+# download_providers : List[DownloadProvider] = list(download_provider_set.keys())
+download_providers = [ key for key in download_provider_set.keys() if key not in ('github', 'huggingface') ]
+
 download_scopes : List[DownloadScope] = [ 'lite', 'full' ]
 
 video_memory_strategies : List[VideoMemoryStrategy] = [ 'strict', 'moderate', 'tolerant' ]

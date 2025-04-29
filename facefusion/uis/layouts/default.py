@@ -12,108 +12,110 @@ def render() -> gradio.Blocks:
 	with gradio.Blocks() as layout:
 		with gradio.Row():
 			with gradio.Column(scale = 4):
+				# with gradio.Blocks():
+					# about.render()
+				# with gradio.Blocks():
+					# processors.render()
+				# with gradio.Blocks():
+					# age_modifier_options.render()
+				# with gradio.Blocks():
+					# deep_swapper_options.render()
+				# with gradio.Blocks():
+					# expression_restorer_options.render()
+				# with gradio.Blocks():
+					# face_debugger_options.render()
+				# with gradio.Blocks():
+					# face_editor_options.render()
+				# with gradio.Blocks():
+					# face_enhancer_options.render()
+				# with gradio.Blocks():
+					# face_swapper_options.render()
+				# nwith gradio.Blocks():
+					# frame_colorizer_options.render()
+				# with gradio.Blocks():
+					# frame_enhancer_options.render()
+				# with gradio.Blocks():
+					# lip_syncer_options.render()
+				# with gradio.Blocks():
+					# execution.render()
+					# execution_thread_count.render()
+					# execution_queue_count.render()
+				# with gradio.Blocks():
+					# download.render()
+				# with gradio.Blocks():
+					# memory.render()
+				# with gradio.Blocks():
+					# output_options.render()
 				with gradio.Blocks():
-					about.render()
-				with gradio.Blocks():
-					processors.render()
-				with gradio.Blocks():
-					age_modifier_options.render()
-				with gradio.Blocks():
-					deep_swapper_options.render()
-				with gradio.Blocks():
-					expression_restorer_options.render()
-				with gradio.Blocks():
-					face_debugger_options.render()
-				with gradio.Blocks():
-					face_editor_options.render()
-				with gradio.Blocks():
-					face_enhancer_options.render()
-				with gradio.Blocks():
-					face_swapper_options.render()
-				with gradio.Blocks():
-					frame_colorizer_options.render()
-				with gradio.Blocks():
-					frame_enhancer_options.render()
-				with gradio.Blocks():
-					lip_syncer_options.render()
-				with gradio.Blocks():
-					execution.render()
-					execution_thread_count.render()
-					execution_queue_count.render()
-				with gradio.Blocks():
-					download.render()
-				with gradio.Blocks():
-					memory.render()
-				with gradio.Blocks():
-					temp_frame.render()
-				with gradio.Blocks():
-					output_options.render()
+					target.render()
 			with gradio.Column(scale = 4):
 				with gradio.Blocks():
 					source.render()
 				with gradio.Blocks():
-					target.render()
+					temp_frame.render()
+				#bwith gradio.Blocks():
+					# terminal.render()
 				with gradio.Blocks():
-					output.render()
-				with gradio.Blocks():
-					terminal.render()
-				with gradio.Blocks():
-					ui_workflow.render()
+					# ui_workflow.render()
 					instant_runner.render()
 					job_runner.render()
 					job_manager.render()
 			with gradio.Column(scale = 7):
+				# with gradio.Blocks():
+					# preview.render()
 				with gradio.Blocks():
-					preview.render()
-				with gradio.Blocks():
-					trim_frame.render()
-				with gradio.Blocks():
-					face_selector.render()
-				with gradio.Blocks():
-					face_masker.render()
-				with gradio.Blocks():
-					face_detector.render()
-				with gradio.Blocks():
-					face_landmarker.render()
-				with gradio.Blocks():
-					common_options.render()
+					output.render()
+				# with gradio.Blocks():
+					# trim_frame.render()
+				# with gradio.Blocks():
+					# face_selector.render()
+				# with gradio.Blocks():
+					# face_masker.render()
+				# with gradio.Blocks():
+					# face_detector.render()
+				# with gradio.Blocks():
+					# face_landmarker.render()
+				# with gradio.Blocks():
+					# common_options.render()
 	return layout
 
 
 def listen() -> None:
-	processors.listen()
-	age_modifier_options.listen()
-	deep_swapper_options.listen()
-	expression_restorer_options.listen()
-	face_debugger_options.listen()
-	face_editor_options.listen()
-	face_enhancer_options.listen()
-	face_swapper_options.listen()
-	frame_colorizer_options.listen()
-	frame_enhancer_options.listen()
-	lip_syncer_options.listen()
-	execution.listen()
-	execution_thread_count.listen()
-	execution_queue_count.listen()
-	download.listen()
-	memory.listen()
+	# processors.listen()
+	# age_modifier_options.listen()
+	# deep_swapper_options.listen()
+	# expression_restorer_options.listen()
+	# face_debugger_options.listen()
+	# face_editor_options.listen()
+	# face_enhancer_options.listen()
+	# face_swapper_options.listen()
+	# frame_colorizer_options.listen()
+	# frame_enhancer_options.listen()
+	# lip_syncer_options.listen()
+	# execution.listen()
+	# execution_thread_count.listen()
+	# execution_queue_count.listen()
+	# download.listen()
+	# memory.listen()
 	temp_frame.listen()
-	output_options.listen()
+	# output_options.listen()
 	source.listen()
 	target.listen()
 	output.listen()
 	instant_runner.listen()
 	job_runner.listen()
 	job_manager.listen()
-	terminal.listen()
-	preview.listen()
-	trim_frame.listen()
-	face_selector.listen()
-	face_masker.listen()
-	face_detector.listen()
-	face_landmarker.listen()
-	common_options.listen()
+	# terminal.listen()
+	# preview.listen()
+	# trim_frame.listen()
+	# face_selector.listen()
+	# face_masker.listen()
+	# face_detector.listen()
+	# face_landmarker.listen()
+	#common_options.listen()
 
 
 def run(ui : gradio.Blocks) -> None:
+	open_browser = state_manager.get_item('open_browser')
+	print(f"******* default.run: open_browser: {open_browser}")
 	ui.launch(favicon_path = 'facefusion.ico', inbrowser = state_manager.get_item('open_browser'))

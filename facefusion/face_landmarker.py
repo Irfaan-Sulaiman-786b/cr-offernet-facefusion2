@@ -110,9 +110,7 @@ def collect_model_downloads() -> Tuple[DownloadSet, DownloadSet]:
 
 
 def pre_check() -> bool:
-	model_hashes, model_sources = collect_model_downloads()
-
-	return conditional_download_hashes(model_hashes) and conditional_download_sources(model_sources)
+	return True
 
 
 def detect_face_landmarks(vision_frame : VisionFrame, bounding_box : BoundingBox, face_angle : Angle) -> Tuple[FaceLandmark68, Score]:

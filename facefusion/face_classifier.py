@@ -55,10 +55,7 @@ def get_model_options() -> ModelOptions:
 
 
 def pre_check() -> bool:
-	model_hashes = get_model_options().get('hashes')
-	model_sources = get_model_options().get('sources')
-
-	return conditional_download_hashes(model_hashes) and conditional_download_sources(model_sources)
+	return True
 
 
 def classify_face(temp_vision_frame : VisionFrame, face_landmark_5 : FaceLandmark5) -> Tuple[Gender, Age, Race]:
