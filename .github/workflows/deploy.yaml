@@ -1,0 +1,82 @@
+name: Deploy to Cloud Run
+
+on:
+  push:
+    branches: [main, dev]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy (main or dev)'
+        required: true
+        type: choice
+        options: [main, dev]
+
+env:
+  REGION: europe-west4
+  REGISTRY: europe-west4-docker.pkg.dev
+  GOOGLE_PROJECT_ID: omnibase-master
+
+jobs:
+  deploy:
+    name: Deploy to Google Cloud Run
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }}
+
+      - name: Set up Google Cloud SDK
+        uses: google-github-actions/setup-gcloud@v1
+        with:
+          project_id: ${{ env.GOOGLE_PROJECT_ID }}
+
+      - name: Determine Deployment Settings
+        run: |
+          BRANCH="${{ github.event.inputs.environment || github.ref_name }}"
+
+          if [ "$BRANCH" == "main" ]; then
+            SUFFIX=live
+          else
+            SUFFIX=dev
+          fi
+
+          echo "SUFFIX=$SUFFIX" >> $GITHUB_ENV
+          echo "SERVICE_NAME=${{ github.event.repository.name }}-$SUFFIX" >> $GITHUB_ENV
+          echo "IMAGE_URI=${{ env.REGISTRY }}/${{ env.GOOGLE_PROJECT_ID }}/${{ github.event.repository.name }}-$SUFFIX/${{ github.event.repository.name }}-image" >> $GITHUB_ENV
+
+      - name: Check if Artifact Registry exists and create if not
+        run: |
+          REGISTRY_NAME="${{ github.event.repository.name }}-registry"
+          REGISTRY_URI="${{ env.REGISTRY }}/${{ env.GOOGLE_PROJECT_ID }}/${REGISTRY_NAME}"
+          
+          # Check if the registry exists
+          if ! gcloud artifacts repositories describe $REGISTRY_NAME --location ${{ env.REGION }} --project ${{ env.GOOGLE_PROJECT_ID }}; then
+            echo "Registry not found, creating it..."
+            gcloud artifacts repositories create $REGISTRY_NAME --location ${{ env.REGION }} --repository-format=docker --project ${{ env.GOOGLE_PROJECT_ID }}
+          else
+            echo "Registry already exists."
+          fi
+
+      - name: Configure Docker to use Google Artifact Registry
+        run: gcloud auth configure-docker ${{ env.REGISTRY }}
+
+      - name: Build and Push Docker Image
+        run: |
+          docker build -t ${{ env.IMAGE_URI }} .
+          docker push ${{ env.IMAGE_URI }}
+
+      - name: Deploy to Cloud Run
+        run: |
+          gcloud run deploy ${{ env.SERVICE_NAME }} \
+            --image ${{ env.IMAGE_URI }} \
+            --region ${{ env.REGION }} \
+            --platform managed \
+            --allow-unauthenticated \
+            --memory 1Gi \
+            --timeout 30m \
+            --project ${{ env.GOOGLE_PROJECT_ID }}

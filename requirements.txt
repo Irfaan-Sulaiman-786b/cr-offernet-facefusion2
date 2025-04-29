@@ -1,0 +1,12 @@
+filetype
+gradio
+gradio-rangeslider
+numpy
+onnx
+onnxruntime
+opencv-python
+psutil
+pydantic
+tqdm
+scipy
+opencv-python
