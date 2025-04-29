@@ -18,18 +18,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Set up application
 WORKDIR /app
 
-# Copy only the necessary files for installation first
-COPY install.py .
+# First copy only requirements and install them
 COPY requirements.txt .
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
 
-# Run requirements
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Run installation
-RUN python install.py --skip-conda --onnxruntime default
-
-# Copy the rest of the application
+# Then copy the rest of the application files
 COPY . .
+
+# Now run the installation script
+RUN python install.py --skip-conda --onnxruntime default
 
 # Run application
 CMD ["python", "facefusion.py", "run"]
