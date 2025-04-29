@@ -2,9 +2,9 @@ from typing import Optional
 
 METADATA =\
 {
-	'name': 'FaceFusion',
+	'name': 'Offerrnet+FaceFusion',
 	'description': 'Industry leading face manipulation platform',
-	'version': '3.1.2',
+	'version': '0.1.1',
 	'license': 'MIT',
 	'author': 'Henry Ruhs',
 	'url': 'https://facefusion.io'

@@ -68,8 +68,8 @@ def render() -> None:
                     const gradioImage = new Image();
                     gradioImage.src = imageDataUrl;
 
-                    // Send the captured image to Gradio by updating the input element
-                    gradioApp().inputs[0].setValue(gradioImage.src);
+                    // Update Gradio image component with the captured image
+                    gradioApp().inputs[0].update({ value: gradioImage.src });
                 });
 
                 // Set the canvas dimensions to match the video feed
