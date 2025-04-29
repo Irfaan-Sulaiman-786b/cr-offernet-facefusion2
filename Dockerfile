@@ -24,8 +24,8 @@ RUN python install.py --skip-conda --onnxruntime default
 # Install additional project dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Expose port 8080 for Cloud Run
+# Expose the expected Cloud Run port
 EXPOSE 8080
 
-# Start the application
+# Run FaceFusion using Cloud Run’s PORT environment variable
 CMD ["python", "facefusion.py"]
