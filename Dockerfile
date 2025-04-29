@@ -13,7 +13,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libglib2.0-0 \
     curl \
     ffmpeg \
-    # Webcam dependencies
+    # Webcam dependencies for browser interaction (especially for Chromium-based apps or VDOM)
     libnss3 \
     libxcomposite1 \
     libxcursor1 \
@@ -24,21 +24,26 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libasound2 \
     libatk-bridge2.0-0 \
     libgbm1 \
+    libxrandr2 \
+    x11-utils \
     && rm -rf /var/lib/apt/lists/*
 
-# Set up application
+# Set up application directory
 WORKDIR /app
 
-# Copy requirements first for caching
+# Copy requirements and install
 COPY requirements.txt .
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
-# Copy the rest of the application
+# Copy source code
 COPY . .
 
-# Run installation if needed
+# Optional install script (facefusion-specific)
 RUN if [ -f install.py ]; then python install.py --skip-conda --onnxruntime default; fi
 
-# Run application
+# Expose Gradio's port
+EXPOSE 8080
+
+# Run the application
 CMD ["python", "facefusion.py", "run"]
