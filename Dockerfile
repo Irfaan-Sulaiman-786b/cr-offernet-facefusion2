@@ -5,8 +5,7 @@ ENV PYTHONUNBUFFERED=1 \
     OMP_NUM_THREADS=1 \
     GRADIO_SERVER_PORT=8080 \
     GRADIO_SERVER_NAME=0.0.0.0 \
-    PORT=8080 \
-    ASSETS_IN_TMP=/tmp/.assets
+    PORT=8080
 
 WORKDIR /app
 
@@ -24,20 +23,6 @@ RUN pip install --no-cache-dir --upgrade pip \
 
 #–– Copy application (excluding .gitignore)
 COPY . .
-
-#–– Create the target directory
-RUN mkdir -p ${ASSETS_IN_TMP}/models
-
-#–– Copy the models explicitly, bypassing .gitignore
-COPY .assets/models/yoloface_8n.onnx ${ASSETS_IN_TMP}/models/
-COPY .assets/models/arcface_w600k_r50.onnx ${ASSETS_IN_TMP}/models/
-COPY .assets/models/inswapper_128_fp16.onnx ${ASSETS_IN_TMP}/models/
-
-#–– Remove the now-empty /app/.assets directory
-RUN rm -rf /app/.assets
-
-#–– Create the symlink
-RUN ln -s ${ASSETS_IN_TMP} /app/.assets
 
 #–– FaceFusion install
 RUN if [ -f install.py ]; then python install.py --skip-conda --onnxruntime default; fi

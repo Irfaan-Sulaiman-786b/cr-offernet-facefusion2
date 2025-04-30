@@ -74,6 +74,13 @@ jobs:
           echo "Pushing Docker image to ${{ env.IMAGE_URI }}..."
           docker push ${{ env.IMAGE_URI }}
 
+      - name: Deploy to Cloud Run Service - Create Env Vars File
+        run: |
+          cat <<EOF > env_vars.yaml
+          GOOGLE_SERVICE_ACCOUNT_KEY: '${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }}'
+          ENVIRONMENT: '${{ env.ENVIRONMENT }}'
+          EOF
+
       - name: Deploy to Cloud Run
         run: |
           echo "Deploying to Cloud Run with service name ${{ env.SERVICE_NAME }} and image URI ${{ env.IMAGE_URI }}..."

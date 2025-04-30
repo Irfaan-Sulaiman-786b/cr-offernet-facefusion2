@@ -26,13 +26,6 @@ def render() -> None:
         value=stored if stored else None
     )
 
-    SOURCE_WEBCAM = gr.Image(
-        sources=["webcam"],   # Use browser webcam
-        type="filepath",      # Save as temporary file
-        interactive=True,
-        label=wording.get('uis.webcam_preview_label') or "Webcam Capture"
-    )
-
     SOURCE_AUDIO = gr.Audio(
         value=get_first(filter_audio_paths(stored)) if has_src_audio else None,
         visible=has_src_audio,
@@ -43,6 +36,13 @@ def render() -> None:
         value=get_first(filter_image_paths(stored)) if has_src_image else None,
         visible=has_src_image,
         show_label=False
+    )
+
+    SOURCE_WEBCAM = gr.Image(
+        sources=["webcam"],   # Use browser webcam
+        type="filepath",      # Save as temporary file
+        interactive=True,
+        label=wording.get('uis.webcam_preview_label') or "Webcam Capture"
     )
 
     for name, component in [

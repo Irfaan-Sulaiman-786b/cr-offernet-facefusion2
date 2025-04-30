@@ -10,3 +10,4 @@ pydantic
 tqdm
 scipy
 opencv-python
+google-cloud-storage
