@@ -26,10 +26,9 @@ RUN pip install --no-cache-dir --upgrade pip \
 RUN mkdir -p /app/.assets/models && \
     cd /app/.assets/models && \
     set -o errexit && \
-    set -o pipefail && \
-    curl -fLo yoloface_8n.onnx https://github.com/facefusion/models/releases/download/v1.0/yoloface_8n.onnx && \
-    curl -fLo arcface_w600k_r50.onnx https://github.com/facefusion/models/releases/download/v1.0/arcface_w600k_r50.onnx && \
-    curl -fLo inswapper_128_fp16.onnx https://github.com/facefusion/models/releases/download/v1.0/inswapper_128_fp16.onnx
+    curl -fLo yoloface_8n.onnx https://github.com/facefusion/models/releases/download/v1.0/yoloface_8n.onnx || exit 1 && \
+    curl -fLo arcface_w600k_r50.onnx https://github.com/facefusion/models/releases/download/v1.0/arcface_w600k_r50.onnx || exit 1 && \
+    curl -fLo inswapper_128_fp16.onnx https://github.com/facefusion/models/releases/download/v1.0/inswapper_128_fp16.onnx || exit 1
 
 #–– Copy rest of application
 COPY . .
