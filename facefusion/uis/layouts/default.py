@@ -122,4 +122,4 @@ def listen() -> None:
 def run(ui : gradio.Blocks) -> None:
 	open_browser = state_manager.get_item('open_browser')
 	print(f"******* default.run: open_browser: {open_browser}")
-	ui.launch(favicon_path = 'facefusion.ico', inbrowser = state_manager.get_item('open_browser'))
+	ui.launch(favicon_path = 'offernet.jfif', inbrowser = state_manager.get_item('open_browser'))

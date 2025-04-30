@@ -39,6 +39,7 @@ def create_inference_pool(model_sources : DownloadSet, execution_device_id : str
 	inference_pool : InferencePool = {}
 
 	for model_name in model_sources.keys():
+		print(f'******* inference_manager: create_inference_pool: model_name: {model_name}')
 		inference_pool[model_name] = create_inference_session(model_sources.get(model_name).get('path'), execution_device_id, execution_providers)
 	return inference_pool
 
