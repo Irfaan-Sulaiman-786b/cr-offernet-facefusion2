@@ -22,14 +22,22 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir --upgrade pip \
   && pip install --no-cache-dir -r requirements.txt
 
-#–– Copy application and models
+#–– Copy application (excluding .gitignore)
 COPY . .
 
-#–– Move models to /tmp and symlink
-RUN mkdir -p ${ASSETS_IN_TMP}/models && \
-    mv /app/.assets/models/* ${ASSETS_IN_TMP}/models/ && \
-    rm -rf /app/.assets && \
-    ln -s ${ASSETS_IN_TMP} /app/.assets
+#–– Create the target directory
+RUN mkdir -p ${ASSETS_IN_TMP}/models
+
+#–– Copy the models explicitly, bypassing .gitignore
+COPY .assets/models/yoloface_8n.onnx ${ASSETS_IN_TMP}/models/
+COPY .assets/models/arcface_w600k_r50.onnx ${ASSETS_IN_TMP}/models/
+COPY .assets/models/inswapper_128_fp16.onnx ${ASSETS_IN_TMP}/models/
+
+#–– Remove the now-empty /app/.assets directory
+RUN rm -rf /app/.assets
+
+#–– Create the symlink
+RUN ln -s ${ASSETS_IN_TMP} /app/.assets
 
 #–– FaceFusion install
 RUN if [ -f install.py ]; then python install.py --skip-conda --onnxruntime default; fi
