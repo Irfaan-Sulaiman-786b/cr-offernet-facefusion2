@@ -1,6 +1,5 @@
 import os
 from functools import lru_cache
-
 import onnx
 from google.cloud import storage
 from facefusion.typing import ModelInitializer
@@ -24,8 +23,10 @@ def download_model_from_gcs(bucket_name: str, cloud_model_path: str, local_model
     bucket = storage_client.bucket(bucket_name)
     blob = bucket.blob(cloud_model_path)
 
+    # Ensure the target directory exists
     os.makedirs(os.path.dirname(local_model_path), exist_ok=True)  # Ensure folders exist
 
+    # Download the blob (file) to the local path
     blob.download_to_filename(local_model_path)
     print(f"✅ Model downloaded from GCS: {cloud_model_path} -> {local_model_path}")
 
@@ -41,3 +42,4 @@ def get_static_model_initializer(model_path: str) -> ModelInitializer:
     print(f"📦 Loading ONNX model: {model_path}")
     model = onnx.load(model_path)
     return onnx.numpy_helper.to_array(model.graph.initializer[-1])
+
