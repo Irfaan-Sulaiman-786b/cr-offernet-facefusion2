@@ -34,9 +34,9 @@ def render() -> None:
     # Webcam components
     with gradio.Row():
         SOURCE_CAMERA_BUTTON = gradio.Button(
-            value=wording.get('uis.take_picture_button') or "TAKE PICTURE",
+            value=wording.get('uis.take_picture_button') or "Take Picture",
             variant='primary',
-			size = 'sm'
+            size='sm'
         )
         SOURCE_WEBCAM = gradio.Image(
             label=wording.get('uis.webcam_preview_label') or "Webcam Preview",
@@ -70,7 +70,10 @@ def render() -> None:
 
 def listen() -> None:
     if SOURCE_FILE and SOURCE_CAMERA_BUTTON and SOURCE_WEBCAM and SOURCE_AUDIO and SOURCE_IMAGE:
+        # Manual upload
         SOURCE_FILE.change(update, inputs=SOURCE_FILE, outputs=[SOURCE_AUDIO, SOURCE_IMAGE])
+
+        # Take Picture opens the webcam and updates the preview
         SOURCE_CAMERA_BUTTON.click(
             toggle_webcam,
             outputs=[SOURCE_WEBCAM, SOURCE_CAMERA_BUTTON]

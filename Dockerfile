@@ -12,25 +12,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libgl1 \
     libglib2.0-0 \
     ffmpeg \
-    libnss3 \
-    libxcomposite1 \
-    libxcursor1 \
-    libxdamage1 \
-    libxi6 \
-    libxtst6 \
-    libxss1 \
-    libasound2 \
-    libatk-bridge2.0-0 \
-    libgbm1 \
-    libxrandr2 \
-    x11-utils \
+    libsm6 \
+    libxext6 \
+    libxrender-dev \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
 WORKDIR /app
 
-# Copy and install dependencies
+# Copy and install Python dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
@@ -38,11 +29,11 @@ RUN pip install --no-cache-dir --upgrade pip && \
 # Copy application code
 COPY . .
 
-# Optional facefusion install
+# Install FaceFusion (skip Conda)
 RUN if [ -f install.py ]; then python install.py --skip-conda --onnxruntime default; fi
 
-# Expose port for Gradio
+# Expose port
 EXPOSE 8080
 
-# Run app
+# Run in headless mode
 CMD ["python", "facefusion.py", "run"]
