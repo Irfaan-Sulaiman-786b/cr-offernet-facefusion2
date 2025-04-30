@@ -23,30 +23,34 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir --upgrade pip \
  && pip install --no-cache-dir -r requirements.txt
 
-#–– Debug: Show directory structure before copy
-RUN mkdir -p /app/.assets/models && ls -la /app || echo "No /app directory"
+#–– Verify .assets exists in build context
+RUN echo "Build context contents:" && ls -la /app
 
-#–– Copy code & assets
+#–– Copy everything including .assets
 COPY . .
 
-#–– Debug: Show what was copied
-RUN ls -la /app/.assets/models || echo "No models directory"
+#–– Verify copied files
+RUN echo "Copied files:" && \
+    ls -la /app && \
+    ls -la /app/.assets && \
+    ls -la /app/.assets/models || echo "Models not found"
 
-#–– Ensure models directory exists and has content
-RUN mkdir -p ${ASSETS_IN_TMP}/models \
- && if [ -d "${ASSETS_IN_IMAGE}" ] && [ "$(ls -A ${ASSETS_IN_IMAGE})" ]; then \
-      echo "Copying models from image to tmp..." && \
-      cp -R ${ASSETS_IN_IMAGE}/* ${ASSETS_IN_TMP}/models/ && \
-      ls -la ${ASSETS_IN_TMP}/models; \
+#–– Handle models with proper path management
+RUN mkdir -p ${ASSETS_IN_TMP}/models && \
+    if [ -d "${ASSETS_IN_IMAGE}" ] && [ -n "$(ls -A ${ASSETS_IN_IMAGE} 2>/dev/null)" ]; then \
+        echo "Moving models to tmp..." && \
+        mv ${ASSETS_IN_IMAGE}/* ${ASSETS_IN_TMP}/models/ && \
+        echo "Moved models:" && ls -la ${ASSETS_IN_TMP}/models; \
     else \
-      echo "⚠️  Warning: No models found in ${ASSETS_IN_IMAGE}, you'll need to download them at runtime"; \
-      mkdir -p ${ASSETS_IN_TMP}/models; \
-    fi \
- && rm -rf /app/.assets \
- && ln -s ${ASSETS_IN_TMP} /app/.assets \
- && ls -la /app/.assets/models || echo "No models in symlinked location"
+        echo "⚠️  Error: Models not found in ${ASSETS_IN_IMAGE}"; \
+        exit 1; \
+    fi && \
+    rm -rf /app/.assets && \
+    ln -s ${ASSETS_IN_TMP} /app/.assets && \
+    echo "Final symlink check:" && \
+    ls -la /app/.assets/models
 
-#–– FaceFusion install (if present)
+#–– FaceFusion install
 RUN if [ -f install.py ]; then python install.py --skip-conda --onnxruntime default; fi
 
 #–– Expose & launch
