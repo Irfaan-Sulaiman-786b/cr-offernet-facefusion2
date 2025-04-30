@@ -1,7 +1,7 @@
 FROM python:3.11-slim
 
 #–– Environment
-env PYTHONUNBUFFERED=1 \
+ENV PYTHONUNBUFFERED=1 \
     PORT=8080 \
     ASSETS_IN_IMAGE=/app/.assets/models \
     ASSETS_IN_TMP=/tmp/.assets
@@ -18,16 +18,18 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir --upgrade pip \
  && pip install --no-cache-dir -r requirements.txt
 
-#–– Copy application code AND baked-in assets
-#    Ensure .dockerignore does NOT exclude .assets/
+#–– Copy application code (including assets if they exist)
 COPY . .
 
-#–– Move baked assets into /tmp and symlink
-RUN mkdir -p ${ASSETS_IN_TMP} \
- && mv ${ASSETS_IN_IMAGE} ${ASSETS_IN_TMP}/models \
- && ln -s ${ASSETS_IN_TMP} /app/.assets
+#–– Create assets directory structure (handles case where assets don't exist)
+RUN mkdir -p ${ASSETS_IN_TMP}/models \
+ && if [ -d "${ASSETS_IN_IMAGE}" ]; then \
+      mv ${ASSETS_IN_IMAGE}/* ${ASSETS_IN_TMP}/models/ && \
+      rm -rf ${ASSETS_IN_IMAGE}; \
+    fi \
+ && ln -sf ${ASSETS_IN_TMP} /app/.assets
 
-#–– FaceFusion install
+#–– FaceFusion install (if install.py exists)
 RUN if [ -f install.py ]; then python install.py --skip-conda --onnxruntime default; fi
 
 #–– Expose & run
