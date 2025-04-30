@@ -111,6 +111,11 @@ def common_pre_check() -> bool:
 		face_recognizer,
 		voice_extractor
 	]
+	common_modules =\
+	[
+		content_analyser,
+		voice_extractor
+	]
 
 	return all(module.pre_check() for module in common_modules)
 
@@ -131,6 +136,11 @@ def force_download() -> ErrorCode:
 		face_landmarker,
 		face_masker,
 		face_recognizer,
+		voice_extractor
+	]
+	common_modules =\
+	[
+		content_analyser,
 		voice_extractor
 	]
 	available_processors = [ file.get('name') for file in list_directory('facefusion/processors/modules') ]
