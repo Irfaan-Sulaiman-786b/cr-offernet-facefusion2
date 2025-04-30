@@ -7,7 +7,7 @@ ENV PYTHONUNBUFFERED=1 \
     GRADIO_SERVER_NAME=0.0.0.0 \
     PORT=8080 \
     ASSETS_IN_IMAGE=/app/.assets/models \
-    ASSETS_IN_TMP=/tmp/.assets/models
+    ASSETS_IN_TMP=/tmp/.assets
 
 WORKDIR /app
 
@@ -23,19 +23,28 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir --upgrade pip \
  && pip install --no-cache-dir -r requirements.txt
 
-#–– Copy code & (optional) baked assets
-# Ensure .assets/models contains yoloface_8n.onnx in your repo
+#–– Debug: Show directory structure before copy
+RUN mkdir -p /app/.assets/models && ls -la /app || echo "No /app directory"
+
+#–– Copy code & assets
 COPY . .
 
-#–– Move any baked-in models into /tmp and symlink back
-RUN mkdir -p ${ASSETS_IN_TMP} \
- && if [ -d "${ASSETS_IN_IMAGE}" ]; then \
-      cp -R ${ASSETS_IN_IMAGE}/* ${ASSETS_IN_TMP}/; \
+#–– Debug: Show what was copied
+RUN ls -la /app/.assets/models || echo "No models directory"
+
+#–– Ensure models directory exists and has content
+RUN mkdir -p ${ASSETS_IN_TMP}/models \
+ && if [ -d "${ASSETS_IN_IMAGE}" ] && [ "$(ls -A ${ASSETS_IN_IMAGE})" ]; then \
+      echo "Copying models from image to tmp..." && \
+      cp -R ${ASSETS_IN_IMAGE}/* ${ASSETS_IN_TMP}/models/ && \
+      ls -la ${ASSETS_IN_TMP}/models; \
     else \
-      echo "⚠️  Warning: no ${ASSETS_IN_IMAGE} to copy"; \
+      echo "⚠️  Warning: No models found in ${ASSETS_IN_IMAGE}, you'll need to download them at runtime"; \
+      mkdir -p ${ASSETS_IN_TMP}/models; \
     fi \
  && rm -rf /app/.assets \
- && ln -s /tmp/.assets /app/.assets
+ && ln -s ${ASSETS_IN_TMP} /app/.assets \
+ && ls -la /app/.assets/models || echo "No models in symlinked location"
 
 #–– FaceFusion install (if present)
 RUN if [ -f install.py ]; then python install.py --skip-conda --onnxruntime default; fi
