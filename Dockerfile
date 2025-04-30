@@ -1,17 +1,35 @@
 FROM python:3.11-slim
 
-#–– Environment
-ENV PYTHONUNBUFFERED=1 \
-    PORT=8080 \
-    ASSETS_IN_IMAGE=/app/.assets/models \
-    ASSETS_IN_TMP=/tmp/.assets
+# Set environment variables
+ENV PYTHONUNBUFFERED=1
+ENV OMP_NUM_THREADS=1
+ENV GRADIO_SERVER_PORT=8080
+ENV GRADIO_SERVER_NAME=0.0.0.0
+ENV PORT=8080
+ENV ASSETS_IN_IMAGE=/app/.assets/models
+ENV ASSETS_IN_TMP=/tmp/.assets
 
 WORKDIR /app
 
 #–– System deps
+# Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    libgl1 libglib2.0-0 ffmpeg libsm6 libxext6 libxrender-dev curl \
-  && rm -rf /var/lib/apt/lists/*
+    libgl1 \
+    libglib2.0-0 \
+    curl \
+    ffmpeg \
+    # Webcam dependencies
+    libnss3 \
+    libxcomposite1 \
+    libxcursor1 \
+    libxdamage1 \
+    libxi6 \
+    libxtst6 \
+    libxss1 \
+    libasound2 \
+    libatk-bridge2.0-0 \
+    libgbm1 \
+    && rm -rf /var/lib/apt/lists/*
 
 #–– Python deps
 COPY requirements.txt .
