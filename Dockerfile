@@ -1,39 +1,39 @@
 FROM python:3.11-slim
 
-# Set environment variables
+#–– Environment
 ENV PYTHONUNBUFFERED=1 \
-    OMP_NUM_THREADS=1 \
-    GRADIO_SERVER_PORT=8080 \
-    GRADIO_SERVER_NAME=0.0.0.0 \
-    PORT=8080
+    PORT=8080 \
+    # where facefusion expects its assets
+    ASSETS_IN_IMAGE=/app/.assets/models \
+    # where we’ll expose them at runtime
+    ASSETS_IN_TMP=/tmp/.assets/models
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    libgl1 \
-    libglib2.0-0 \
-    ffmpeg \
-    libsm6 \
-    libxext6 \
-    libxrender-dev \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
-
-# Set working directory
 WORKDIR /app
 
-# Copy and install Python dependencies
-COPY requirements.txt .
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
+#–– System deps
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libgl1 libglib2.0-0 ffmpeg libsm6 libxext6 libxrender-dev \
+  && rm -rf /var/lib/apt/lists/*
 
-# Copy application code
+#–– Python deps
+COPY requirements.txt .
+RUN pip install --no-cache-dir --upgrade pip \
+ && pip install --no-cache-dir -r requirements.txt
+
+#–– Copy code + baked-in ONNX model
+#    (make sure your .dockerignore does NOT exclude .assets/)
 COPY . .
 
-# Install FaceFusion (skip Conda)
+#–– FaceFusion install
 RUN if [ -f install.py ]; then python install.py --skip-conda --onnxruntime default; fi
 
-# Expose port
-EXPOSE 8080
+#–– Symlink baked assets into /tmp at build time
+#    (so that at runtime /tmp/.assets/models contains your onnx)
+RUN mkdir -p ${ASSETS_IN_TMP} \
+ && cp -R ${ASSETS_IN_IMAGE}/* ${ASSETS_IN_TMP}/ \
+ && rm -rf /app/.assets \
+ && ln -s /tmp/.assets /app/.assets
 
-# Run in headless mode
+#–– Expose & run
+EXPOSE 8080
 CMD ["python", "facefusion.py", "run"]
