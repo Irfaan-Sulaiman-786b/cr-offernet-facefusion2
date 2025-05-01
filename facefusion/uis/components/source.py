@@ -41,8 +41,8 @@ def render() -> None:
     )
 
     SOURCE_WEBCAM = gr.Image(
-        sources=["webcam"],   # Use browser webcam
-        type="filepath",      # Save as temporary file
+        sources=["webcam"],
+        type="filepath",
         interactive=True,
         label=wording.get('uis.webcam_preview_label') or "Webcam Capture"
     )
@@ -88,18 +88,15 @@ def update(files: Optional[List[File]]) -> Tuple[gr.Audio, gr.Image]:
 
 def on_capture(image_path: str) -> gr.Image:
     print("# source.py; source.py:on_capture")
-    """
-    Called when user captures a webcam snapshot.
-    We get the temp file path and save it.
-    """
     state_manager.set_item("source_paths", [image_path])
     return gr.update(value=image_path, visible=False)
 
-def clear() -> Tuple[gr.File, gr.Audio, gr.Image]:
+def clear() -> Tuple[gr.File, gr.Audio, gr.Image, gr.Image]:
     print("# source.py; source.py:clear")
     state_manager.clear_item("source_paths")
     return (
         gr.File(value=None),
         gr.Audio(value=None, visible=False),
-        gr.Image(value=None, visible=False)
+        gr.Image(value=None, visible=False),
+        gr.Image(value=None, visible=True)  # <-- Reset webcam
     )
