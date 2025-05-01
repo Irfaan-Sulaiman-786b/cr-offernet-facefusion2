@@ -11,9 +11,10 @@ SOURCE_FILE: Optional[gr.File] = None
 SOURCE_WEBCAM: Optional[gr.Image] = None
 SOURCE_AUDIO: Optional[gr.Audio] = None
 SOURCE_IMAGE: Optional[gr.Image] = None
+CLEAR_BUTTON: Optional[gr.Button] = None
 
 def render() -> None:
-    global SOURCE_FILE, SOURCE_WEBCAM, SOURCE_AUDIO, SOURCE_IMAGE
+    global SOURCE_FILE, SOURCE_WEBCAM, SOURCE_AUDIO, SOURCE_IMAGE, CLEAR_BUTTON
 
     stored = state_manager.get_item('source_paths') or []
     has_src_audio = has_audio(stored)
@@ -23,27 +24,33 @@ def render() -> None:
         label=wording.get('uis.source_file_label') or "Upload Source Image(s)/Audio",
         file_count="multiple",
         file_types=["image", "audio"],
-        value=stored if stored else None
+        value=stored if stored else None,
+        elem_id="source_file"
     )
 
     SOURCE_AUDIO = gr.Audio(
         value=get_first(filter_audio_paths(stored)) if has_src_audio else None,
         visible=has_src_audio,
-        show_label=False
+        show_label=False,
+        elem_id="source_audio"
     )
 
     SOURCE_IMAGE = gr.Image(
         value=get_first(filter_image_paths(stored)) if has_src_image else None,
         visible=has_src_image,
-        show_label=False
+        show_label=False,
+        elem_id="source_image"
     )
 
     SOURCE_WEBCAM = gr.Image(
         sources=["webcam"],   # Use browser webcam
         type="filepath",      # Save as temporary file
         interactive=True,
-        label=wording.get('uis.webcam_preview_label') or "Webcam Capture"
+        label=wording.get('uis.webcam_preview_label') or "Webcam Capture",
+        elem_id="source_webcam"
     )
+
+    CLEAR_BUTTON = gr.Button("Clear All")
 
     for name, component in [
         ("source_file", SOURCE_FILE),
@@ -52,6 +59,7 @@ def render() -> None:
         ("source_image", SOURCE_IMAGE)
     ]:
         register_ui_component(name, component)
+    register_ui_component("clear_button", CLEAR_BUTTON)
 
 def listen() -> None:
     SOURCE_FILE.change(
@@ -65,6 +73,12 @@ def listen() -> None:
         inputs=SOURCE_WEBCAM,
         outputs=SOURCE_IMAGE
     )
+
+    if CLEAR_BUTTON:
+        CLEAR_BUTTON.click(
+            fn=clear_all,
+            outputs=[SOURCE_FILE, SOURCE_WEBCAM, SOURCE_AUDIO, SOURCE_IMAGE]
+        )
 
 def update(files: Optional[List[File]]) -> Tuple[gr.Audio, gr.Image]:
     if files:
@@ -89,3 +103,12 @@ def on_capture(image_path: str) -> gr.Image:
     """
     state_manager.set_item("source_paths", [image_path])
     return gr.update(value=image_path, visible=True)
+
+def clear_all():
+    state_manager.clear_item("source_paths")
+    return (
+        gr.update(value=None),  # Reset SOURCE_FILE
+        gr.update(value=None),  # Reset SOURCE_WEBCAM (clears preview)
+        gr.update(value=None, visible=False),  # Reset SOURCE_AUDIO
+        gr.update(value=None, visible=False),  # Reset SOURCE_IMAGE
+    )
