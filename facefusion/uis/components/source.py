@@ -88,4 +88,4 @@ def on_capture(image_path: str) -> gr.Image:
     We get the temp file path and save it.
     """
     state_manager.set_item("source_paths", [image_path])
-    return gr.update(value=image_path, visible=True)
+    return gr.update(value=image_path, visible=False)
