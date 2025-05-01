@@ -89,6 +89,6 @@ jobs:
             --region ${{ env.REGION }} \
             --platform managed \
             --allow-unauthenticated \
-            --memory 1Gi \
+            --memory 2Gi \
             --timeout 30m \
             --project ${{ env.GOOGLE_PROJECT_ID }}
