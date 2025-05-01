@@ -1,3 +1,4 @@
+# target.py
 from typing import Optional, Tuple
 
 import gradio
@@ -17,64 +18,73 @@ TARGET_VIDEO : Optional[gradio.Video] = None
 
 
 def render() -> None:
-	global TARGET_FILE
-	global TARGET_IMAGE
-	global TARGET_VIDEO
+    global TARGET_FILE
+    global TARGET_IMAGE
+    global TARGET_VIDEO
 
-	is_target_image = is_image(state_manager.get_item('target_path'))
-	is_target_video = is_video(state_manager.get_item('target_path'))
-	TARGET_FILE = gradio.File(
-		label = wording.get('uis.target_file'),
-		file_count = 'single',
-		file_types =
-		[
-			'image',
-			'video'
-		],
-		value = state_manager.get_item('target_path') if is_target_image or is_target_video else None
-	)
-	target_image_options : ComponentOptions =\
-	{
-		'show_label': False,
-		'visible': False
-	}
-	target_video_options : ComponentOptions =\
-	{
-		'show_label': False,
-		'visible': False
-	}
-	if is_target_image:
-		target_image_options['value'] = TARGET_FILE.value.get('path')
-		target_image_options['visible'] = True
-	if is_target_video:
-		if get_file_size(state_manager.get_item('target_path')) > FILE_SIZE_LIMIT:
-			preview_vision_frame = normalize_frame_color(get_video_frame(state_manager.get_item('target_path')))
-			target_image_options['value'] = preview_vision_frame
-			target_image_options['visible'] = True
-		else:
-			target_video_options['value'] = TARGET_FILE.value.get('path')
-			target_video_options['visible'] = True
-	TARGET_IMAGE = gradio.Image(**target_image_options)
-	TARGET_VIDEO = gradio.Video(**target_video_options)
-	register_ui_component('target_image', TARGET_IMAGE)
-	register_ui_component('target_video', TARGET_VIDEO)
+    print("# target.py; target.py:render")
+
+    is_target_image = is_image(state_manager.get_item('target_path'))
+    is_target_video = is_video(state_manager.get_item('target_path'))
+    TARGET_FILE = gradio.File(
+        label = wording.get('uis.target_file'),
+        file_count = 'single',
+        file_types =
+        [
+            'image',
+            'video'
+        ],
+        value = state_manager.get_item('target_path') if is_target_image or is_target_video else None
+    )
+    target_image_options : ComponentOptions =\
+    {
+        'show_label': False,
+        'visible': False
+    }
+    target_video_options : ComponentOptions =\
+    {
+        'show_label': False,
+        'visible': False
+    }
+    if is_target_image:
+        target_image_options['value'] = TARGET_FILE.value.get('path')
+        target_image_options['visible'] = True
+    if is_target_video:
+        if get_file_size(state_manager.get_item('target_path')) > FILE_SIZE_LIMIT:
+            preview_vision_frame = normalize_frame_color(get_video_frame(state_manager.get_item('target_path')))
+            target_image_options['value'] = preview_vision_frame
+            target_image_options['visible'] = True
+        else:
+            target_video_options['value'] = TARGET_FILE.value.get('path')
+            target_video_options['visible'] = True
+    TARGET_IMAGE = gradio.Image(**target_image_options)
+    TARGET_VIDEO = gradio.Video(**target_video_options)
+    register_ui_component('target_image', TARGET_IMAGE)
+    register_ui_component('target_video', TARGET_VIDEO)
+    register_ui_component('target_file', TARGET_FILE) # Register TARGET_FILE
 
 
 def listen() -> None:
-	TARGET_FILE.change(update, inputs = TARGET_FILE, outputs = [ TARGET_IMAGE, TARGET_VIDEO ])
+    print("# target.py; target.py:listen")
+    TARGET_FILE.change(update, inputs = TARGET_FILE, outputs = [ TARGET_IMAGE, TARGET_VIDEO ])
 
 
 def update(file : File) -> Tuple[gradio.Image, gradio.Video]:
-	clear_reference_faces()
-	clear_static_faces()
-	if file and is_image(file.name):
-		state_manager.set_item('target_path', file.name)
-		return gradio.Image(value = file.name, visible = True), gradio.Video(value = None, visible = False)
-	if file and is_video(file.name):
-		state_manager.set_item('target_path', file.name)
-		if get_file_size(file.name) > FILE_SIZE_LIMIT:
-			preview_vision_frame = normalize_frame_color(get_video_frame(file.name))
-			return gradio.Image(value = preview_vision_frame, visible = True), gradio.Video(value = None, visible = False)
-		return gradio.Image(value = None, visible = False), gradio.Video(value = file.name, visible = True)
-	state_manager.clear_item('target_path')
-	return gradio.Image(value = None, visible = False), gradio.Video(value = None, visible = False)
+    print("# target.py; target.py:update")
+    clear_reference_faces()
+    clear_static_faces()
+    if file and is_image(file.name):
+        state_manager.set_item('target_path', file.name)
+        return gradio.Image(value = file.name, visible = True), gradio.Video(value = None, visible = False)
+    if file and is_video(file.name):
+        state_manager.set_item('target_path', file.name)
+        if get_file_size(file.name) > FILE_SIZE_LIMIT:
+            preview_vision_frame = normalize_frame_color(get_video_frame(file.name))
+            return gradio.Image(value = preview_vision_frame, visible = True), gradio.Video(value = None, visible = False)
+        return gradio.Image(value = None, visible = False), gradio.Video(value = file.name, visible = True)
+    state_manager.clear_item('target_path')
+    return gradio.Image(value = None, visible = False), gradio.Video(value = None, visible = False)
+
+def clear() -> Tuple[gradio.Image, gradio.Video]:
+    print("# target.py; target.py:clear")
+    return gradio.Image(value = None), gradio.Video(value = None)
