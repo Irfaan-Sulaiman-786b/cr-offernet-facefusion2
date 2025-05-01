@@ -56,14 +56,17 @@ def listen() -> None:
     target_file = get_ui_component('target_file')
     target_image = get_ui_component('target_image')
     target_video = get_ui_component('target_video')
+    source_file = get_ui_component('source_file')
+    source_audio = get_ui_component('source_audio')
+    source_image = get_ui_component('source_image')
 
     print("# instant_runner.py; instant_runner.py:listen")
 
-    if output_image and output_video and target_file and target_image and target_video:
+    if output_image and output_video and target_file and target_image and target_video and source_file and source_audio and source_image:
         INSTANT_RUNNER_START_BUTTON.click(start, outputs = [ INSTANT_RUNNER_START_BUTTON, INSTANT_RUNNER_STOP_BUTTON ])
         INSTANT_RUNNER_START_BUTTON.click(run, outputs = [ INSTANT_RUNNER_START_BUTTON, INSTANT_RUNNER_STOP_BUTTON, output_image, output_video ])
         INSTANT_RUNNER_STOP_BUTTON.click(stop, outputs = [ INSTANT_RUNNER_START_BUTTON, INSTANT_RUNNER_STOP_BUTTON ])
-        INSTANT_RUNNER_CLEAR_BUTTON.click(clear, outputs = [ output_image, output_video, target_file, target_image, target_video ])
+        INSTANT_RUNNER_CLEAR_BUTTON.click(clear, outputs = [ output_image, output_video, target_file, target_image, target_video, source_file, source_audio, source_image ])
     if ui_workflow_dropdown:
         ui_workflow_dropdown.change(remote_update, inputs = ui_workflow_dropdown, outputs = INSTANT_RUNNER_WRAPPER)
 
@@ -115,8 +118,17 @@ def stop() -> Tuple[gradio.Button, gradio.Button]:
     return gradio.Button(visible = True), gradio.Button(visible = False)
 
 
-def clear() -> Tuple[gradio.Image, gradio.Video, gradio.File, gradio.Image, gradio.Video]:
+def clear() -> Tuple[gradio.Image, gradio.Video, gradio.File, gradio.Image, gradio.Video, gradio.File, gradio.Audio, gradio.Image]:
     print("# instant_runner.py; instant_runner.py:clear")
     while process_manager.is_processing():
         sleep(0.5)
-    return gradio.Image(value = None), gradio.Video(value = None), gradio.File(value = None), gradio.Image(visible = False), gradio.Video(visible = False)
+    return (
+        gradio.Image(value = None),
+        gradio.Video(value = None),
+        gradio.File(value = None),
+        gradio.Image(visible = False),
+        gradio.Video(visible = False),
+        gradio.File(value = None),
+        gradio.Audio(value = None, visible = False),
+        gradio.Image(value = None, visible = False),
+    )
