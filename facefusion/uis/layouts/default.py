@@ -57,8 +57,8 @@ def render() -> gradio.Blocks:
 			with gradio.Column(scale = 4):
 				with gradio.Blocks():
 					source.render()
-				with gradio.Blocks():
-					temp_frame.render()
+				# with gradio.Blocks():
+					# temp_frame.render()
 				#bwith gradio.Blocks():
 					# terminal.render()
 				with gradio.Blocks():
@@ -103,7 +103,7 @@ def listen() -> None:
 	# execution_queue_count.listen()
 	# download.listen()
 	# memory.listen()
-	temp_frame.listen()
+	# temp_frame.listen()
 	# output_options.listen()
 	source.listen()
 	target.listen()
