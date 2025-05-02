@@ -13,6 +13,7 @@ SOURCE_WEBCAM: Optional[gr.Image] = None
 SOURCE_AUDIO: Optional[gr.Audio] = None
 SOURCE_IMAGE: Optional[gr.Image] = None
 
+
 def render() -> None:
     global SOURCE_FILE, SOURCE_WEBCAM, SOURCE_AUDIO, SOURCE_IMAGE
     print("# source.py; source.py:render")
@@ -55,6 +56,7 @@ def render() -> None:
     ]:
         register_ui_component(name, component)
 
+
 def listen() -> None:
     print("# source.py; source.py:listen")
     SOURCE_FILE.change(
@@ -68,6 +70,7 @@ def listen() -> None:
         inputs=SOURCE_WEBCAM,
         outputs=SOURCE_IMAGE
     )
+
 
 def update(files: Optional[List[File]]) -> Tuple[gr.Audio, gr.Image]:
     print("# source.py; source.py:update")
@@ -86,10 +89,12 @@ def update(files: Optional[List[File]]) -> Tuple[gr.Audio, gr.Image]:
         gr.update(value=None, visible=False)
     )
 
+
 def on_capture(image_path: str) -> gr.Image:
     print("# source.py; source.py:on_capture")
     state_manager.set_item("source_paths", [image_path])
     return gr.update(value=image_path, visible=False)
+
 
 def clear() -> Tuple[gr.File, gr.Audio, gr.Image, gr.Image]:
     print("# source.py; source.py:clear")
@@ -97,6 +102,6 @@ def clear() -> Tuple[gr.File, gr.Audio, gr.Image, gr.Image]:
     return (
         gr.File(value=None),
         gr.Audio(value=None, visible=False),
-        gr.Image(value=None, visible=False),
-        gr.Image(value=None, visible=True)  # <-- Reset webcam
+        gr.Image(value=None, visible=False),  # SOURCE_IMAGE
+        gr.Image(value=None, visible=True)    # SOURCE_WEBCAM: restart webcam input
     )
