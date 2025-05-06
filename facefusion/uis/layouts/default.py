@@ -1,3 +1,5 @@
+import os
+import json
 import gradio
 
 from facefusion import state_manager
@@ -5,6 +7,8 @@ from facefusion.uis.components import about, age_modifier_options, common_option
 
 from google.cloud import storage
 from google.oauth2 import service_account
+
+GOOGLE_SERVICE_ACCOUNT_KEY = os.getenv("GOOGLE_SERVICE_ACCOUNT_KEY")
 
 
 def pre_check() -> bool:
@@ -125,7 +129,8 @@ def listen() -> None:
 
 
 def run(ui : gradio.Blocks) -> None:
-	credentials = service_account.Credentials.from_service_account_file(".general-service-account-key.json")
+	credentials_dict = json.loads(GOOGLE_SERVICE_ACCOUNT_KEY)
+	credentials = service_account.Credentials.from_service_account_info(credentials_dict)
 	client = storage.Client(credentials=credentials)
 	instant_runner.set_storage_client(client)
 	open_browser = state_manager.get_item('open_browser')
