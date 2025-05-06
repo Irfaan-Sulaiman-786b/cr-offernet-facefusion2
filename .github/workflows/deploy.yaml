@@ -87,6 +87,7 @@ jobs:
           gcloud run deploy ${{ env.SERVICE_NAME }} \
             --image ${{ env.IMAGE_URI }} \
             --region ${{ env.REGION }} \
+            --env-vars-file env_vars.yaml \
             --platform managed \
             --allow-unauthenticated \
             --cpu 2 \
