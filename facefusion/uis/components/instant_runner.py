@@ -1,4 +1,5 @@
 # instant_runner.py
+import os
 from time import sleep
 from typing import Optional, Tuple
 import gradio
@@ -16,6 +17,8 @@ INSTANT_RUNNER_WRAPPER: Optional[gradio.Row] = None
 INSTANT_RUNNER_START_BUTTON: Optional[gradio.Button] = None
 INSTANT_RUNNER_STOP_BUTTON: Optional[gradio.Button] = None
 INSTANT_RUNNER_CLEAR_BUTTON: Optional[gradio.Button] = None
+
+g_client = None
 
 def render() -> None:
     global INSTANT_RUNNER_WRAPPER, INSTANT_RUNNER_START_BUTTON, INSTANT_RUNNER_STOP_BUTTON, INSTANT_RUNNER_CLEAR_BUTTON
@@ -88,10 +91,15 @@ def run() -> Tuple[gradio.Button, gradio.Button, gradio.Image, gradio.Video]:
         step_args['output_path'] = suggest_output_path(output_path, state_manager.get_item('target_path'))
 
     if job_manager.init_jobs(state_manager.get_item('jobs_path')):
+        print("# instant_runner.py; instant_runner.py:run: init_jobs")
         create_and_run_job(step_args)
         state_manager.set_item('output_path', output_path)
 
+     # ✅ Upload to GCS here
+    _upload_output_to_gcs(step_args['output_path'], "gcs-offernet-facefusion-output-live")
+
     if is_image(step_args['output_path']):
+        print("# instant_runner.py; instant_runner.py:run: is_image")
         return gradio.Button(visible=True), gradio.Button(visible=False), gradio.Image(value=step_args['output_path'], visible=True), gradio.Video(value=None, visible=False)
     if is_video(step_args['output_path']):
         return gradio.Button(visible=True), gradio.Button(visible=False), gradio.Image(value=None, visible=False), gradio.Video(value=step_args['output_path'], visible=True)
@@ -127,3 +135,17 @@ def clear() -> Tuple[gradio.Image, gradio.Video, gradio.File, gradio.Image, grad
         gradio.Image(value=None, visible=False),
         gradio.Image(value=None, visible=True)  # <-- Reset webcam
     )
+
+def set_storage_client(client):
+    global g_client
+
+    g_client = client
+
+def _upload_output_to_gcs(output_path: str, bucket_name: str):
+    global g_client
+
+    bucket = g_client.bucket(bucket_name)
+
+    blob = bucket.blob(os.path.basename(output_path))
+    blob.upload_from_filename(output_path)
+    print(f"Uploaded {output_path} to {bucket_name}/{blob.name}")

@@ -3,6 +3,9 @@ import gradio
 from facefusion import state_manager
 from facefusion.uis.components import about, age_modifier_options, common_options, deep_swapper_options, download, execution, execution_queue_count, execution_thread_count, expression_restorer_options, face_debugger_options, face_detector, face_editor_options, face_enhancer_options, face_landmarker, face_masker, face_selector, face_swapper_options, frame_colorizer_options, frame_enhancer_options, instant_runner, job_manager, job_runner, lip_syncer_options, memory, output, output_options, preview, processors, source, target, temp_frame, terminal, trim_frame, ui_workflow, header, instructions
 
+from google.cloud import storage
+from google.oauth2 import service_account
+
 
 def pre_check() -> bool:
 	return True
@@ -122,6 +125,9 @@ def listen() -> None:
 
 
 def run(ui : gradio.Blocks) -> None:
+	credentials = service_account.Credentials.from_service_account_file(".general-service-account-key.json")
+	client = storage.Client(credentials=credentials)
+	instant_runner.set_storage_client(client)
 	open_browser = state_manager.get_item('open_browser')
 	print(f"******* default.run: open_browser: {open_browser}")
 	ui.launch(favicon_path = 'offernet.jfif', inbrowser = state_manager.get_item('open_browser'))
